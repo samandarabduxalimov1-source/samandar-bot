@@ -1,26 +1,25 @@
 import telebot
-from flask import Flask, request
-from config import TOKEN
+from telebot import types
+from config import TOKEN, ADMIN_ID
 
 bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__)
 
 @bot.message_handler(commands=['start'])
-def start_message(message):
-    bot.reply_to(message, "Salom men  ishlayapman 🚀")
+def start(message):
+    user = message.from_user.first_name
+    bot.send_message(message.chat.id, f"Salom, {user}! 👋\nMen Samandar yaratgan botman.")
 
-@app.route('/' + TOKEN, methods=['POST'])
-def getMessage():
-    json_str = request.stream.read().decode('UTF-8')
-    update = telebot.types.Update.de_json(json_str)
-    bot.process_new_updates([update])
-    return 'OK', 200
+@bot.message_handler(commands=['help'])
+def help(message):
+    bot.send_message(message.chat.id, "Buyruqlar:\n/start - Botni ishga tushirish\n/help - Yordam")
 
-@app.route('/')
-def webhook():
-    bot.remove_webhook()
-    bot.set_webhook(url='https://SENING-LINKING.onrender.com/' + TOKEN)
-    return "Webhook o‘rnatildi!", 200
+@bot.message_handler(content_types=['text'])
+def text_handler(message):
+    if message.text.lower() == "salom":
+        bot.send_message(message.chat.id, "Salom! Qandaysiz?")
+    else:
+        bot.send_message(message.chat.id, "Siz yozgan matnni tushunmadim 🤖")
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=10000)
+    print("Bot ishga tushdi...")
+    bot.infinity_polling()
